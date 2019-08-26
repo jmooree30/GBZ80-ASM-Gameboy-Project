@@ -85,12 +85,12 @@ Start::
   ld hl, TileLabel
   ld de, _VRAM ; $8000
   ld bc, TileLabelEnd - TileLabel
-  call copy
+  call Memcpy
 
   ld hl, map
   ld de, _SCRN0 ; $9800
   ld bc, mapEnd - map
-  call copy
+  call Memcpy
 
   ld a, LCDCF_ON | LCDCF_BG8000 | LCDCF_BGON
   ldh [rLCDC],a
@@ -145,15 +145,15 @@ ClearLoop::
   jr nz, ClearLoop
   ret
 
-copy::
+Memcpy::
   inc b
   inc c
-  jr .skip
+  jr .firstLoop
 .copy
   ld a, [hl+]
   ld [de], a
   inc de
-.skip
+.firstLoop
   dec c
   jr nz,.copy
   dec b

@@ -156,7 +156,7 @@ Loop::
   bit 2, [hl]       ; check if up on the joypad is pressed
   bit 2, [hl]       ; check if up on the joypad is pressed
   
-  jp z, MoveScreen  ; if 0(pressed) jump to label
+  call z, MoveScreen  ; if 0(pressed) jump to label
 
   jp Loop
 

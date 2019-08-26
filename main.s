@@ -34,24 +34,24 @@ SECTION "Org $38", ROM0[$38]
 RST_38:
   jp $100
 
-SECTION "V-Blank IRQ Vector", ROM0[$40]
-VBL_VECT:
+SECTION "Interrupts", ROM0[$40]
+  ; VBlank
   reti
+  ds 7
 
-SECTION "LCD IRQ Vector", ROM0[$48]
-LCD_VECT:
+  ; LCD
   reti
+  ds 7
 
-SECTION "Timer IRQ Vector", ROM0[$50]
-TIMER_VECT:
+  ; Timer
   reti
+  ds 7
 
-SECTION "Serial IRQ Vector", ROM0[$58]
-SERIAL_VECT:
+  ; Serial
   reti
+  ds 7
 
-SECTION "Joypad IRQ Vector", ROM0[$60]
-JOYPAD_VECT:
+  ; Joypad
   reti
 
 SECTION "Header", ROM0[$100]
@@ -71,9 +71,17 @@ Start::
   di ; Disable interrupts
   ld sp, wStackBottom
 
-  call WaitVBlank ; Wait for v-blank
+  ; Wait for VBlank without interrupts
+.waitVBlank
+  ldh a, [rLY]
+  cp SCRN_Y
+  jr nz, .waitVBlank
   xor a
   ldh [rLCDC],a ; Turn off LCD
+
+  ; Enable only the VBlank interrupt
+  ld a, IEF_VBLANK
+  ldh [rIE], a
 
   ld a, %11100100 ; Load a normal palette up 11 10 01 00 - dark->light
   ldh [rBGP], a
@@ -90,6 +98,12 @@ Start::
 
   ld a, LCDCF_ON | LCDCF_BG8000 | LCDCF_BGON
   ldh [rLCDC],a
+
+  ; Clear any interrupts that might have accumulated while disabled
+  xor a
+  ei ; Enable interrupts *after* next instruction
+  ldh [rIF], a ; Clear pending interrupts, we don't want any interrupt to misfire
+
 
 Loop::
   call WaitVBlank ; Wait for v-blank
@@ -118,9 +132,7 @@ ENDR
 SECTION "Support Routines",ROM0
 
 WaitVBlank::
-  ldh a, [rLY] ; Get current scanline
-  cp SCRN_Y ; Are we in v-blank yet?
-  jr nz, WaitVBlank ; If A-91 != 0 then loop
+  halt
   ret
 
 Memcpy::

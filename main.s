@@ -3,175 +3,175 @@ INCLUDE	"hardware.inc"
 
 
 ;*	cartridge header
-	SECTION	"Org $00",ROM0[$00]
+  SECTION	"Org $00",ROM0[$00]
 RST_00:	
-	jp	$100
+  jp	$100
 
-	SECTION	"Org $08",ROM0[$08]
+  SECTION	"Org $08",ROM0[$08]
 RST_08:	
-	jp	$100
+  jp	$100
 
-	SECTION	"Org $10",ROM0[$10]
+  SECTION	"Org $10",ROM0[$10]
 RST_10:
-	jp	$100
+  jp	$100
 
-	SECTION	"Org $18",ROM0[$18]
+  SECTION	"Org $18",ROM0[$18]
 RST_18:
-	jp	$100
+  jp	$100
 
-	SECTION	"Org $20",ROM0[$20]
+  SECTION	"Org $20",ROM0[$20]
 RST_20:
-	jp	$100
+  jp	$100
 
-	SECTION	"Org $28",ROM0[$28]
+  SECTION	"Org $28",ROM0[$28]
 RST_28:
-	jp	$100
+  jp	$100
 
-	SECTION	"Org $30",ROM0[$30]
+  SECTION	"Org $30",ROM0[$30]
 RST_30:
-	jp	$100
+  jp	$100
 
-	SECTION	"Org $38",ROM0[$38]
+  SECTION	"Org $38",ROM0[$38]
 RST_38:
-	jp	$100
+  jp	$100
 
-	SECTION	"V-Blank IRQ Vector",ROM0[$40]
+  SECTION	"V-Blank IRQ Vector",ROM0[$40]
 VBL_VECT:
-	reti
-	
-	SECTION	"LCD IRQ Vector",ROM0[$48]
+  reti
+  
+  SECTION	"LCD IRQ Vector",ROM0[$48]
 LCD_VECT:
-	reti
+  reti
 
-	SECTION	"Timer IRQ Vector",ROM0[$50]
+  SECTION	"Timer IRQ Vector",ROM0[$50]
 TIMER_VECT:
-	reti
+  reti
 
-	SECTION	"Serial IRQ Vector",ROM0[$58]
+  SECTION	"Serial IRQ Vector",ROM0[$58]
 SERIAL_VECT:
-	reti
+  reti
 
-	SECTION	"Joypad IRQ Vector",ROM0[$60]
+  SECTION	"Joypad IRQ Vector",ROM0[$60]
 JOYPAD_VECT:
-	reti
-	
-	SECTION	"Start",ROM0[$100]
-	nop
-	jp	Start
+  reti
+  
+  SECTION	"Start",ROM0[$100]
+  nop
+  jp	Start
 
-	; $0104-$0133 (Nintendo logo - do _not_ modify the logo data here or the GB will not run the program)
-	DB	$CE,$ED,$66,$66,$CC,$0D,$00,$0B,$03,$73,$00,$83,$00,$0C,$00,$0D
-	DB	$00,$08,$11,$1F,$88,$89,$00,$0E,$DC,$CC,$6E,$E6,$DD,$DD,$D9,$99
-	DB	$BB,$BB,$67,$63,$6E,$0E,$EC,$CC,$DD,$DC,$99,$9F,$BB,$B9,$33,$3E
+  ; $0104-$0133 (Nintendo logo - do _not_ modify the logo data here or the GB will not run the program)
+  DB	$CE,$ED,$66,$66,$CC,$0D,$00,$0B,$03,$73,$00,$83,$00,$0C,$00,$0D
+  DB	$00,$08,$11,$1F,$88,$89,$00,$0E,$DC,$CC,$6E,$E6,$DD,$DD,$D9,$99
+  DB	$BB,$BB,$67,$63,$6E,$0E,$EC,$CC,$DD,$DC,$99,$9F,$BB,$B9,$33,$3E
 
-	; $0134-$013E (Game title - up to 11 upper case ASCII characters; pad with $00)
-	DB	"HELLO WORLD"
-		;0123456789A
+  ; $0134-$013E (Game title - up to 11 upper case ASCII characters; pad with $00)
+  DB	"HELLO WORLD"
+    ;0123456789A
 
-	; $013F-$0142 (Product code - 4 ASCII characters, assigned by Nintendo, just leave blank)
-	DB	"    "
-		;0123
+  ; $013F-$0142 (Product code - 4 ASCII characters, assigned by Nintendo, just leave blank)
+  DB	"    "
+    ;0123
 
-	; $0143 (Color GameBoy compatibility code)
-	DB	$00	; $00 - DMG 
-			; $80 - DMG/GBC
-			; $C0 - GBC Only cartridge
+  ; $0143 (Color GameBoy compatibility code)
+  DB	$00	; $00 - DMG 
+      ; $80 - DMG/GBC
+      ; $C0 - GBC Only cartridge
 
-	; $0144 (High-nibble of license code - normally $00 if $014B != $33)
-	DB	$00
+  ; $0144 (High-nibble of license code - normally $00 if $014B != $33)
+  DB	$00
 
-	; $0145 (Low-nibble of license code - normally $00 if $014B != $33)
-	DB	$00
+  ; $0145 (Low-nibble of license code - normally $00 if $014B != $33)
+  DB	$00
 
-	; $0146 (GameBoy/Super GameBoy indicator)
-	DB	$00	; $00 - GameBoy
+  ; $0146 (GameBoy/Super GameBoy indicator)
+  DB	$00	; $00 - GameBoy
 
-	; $0147 (Cartridge type - all Color GameBoy cartridges are at least $19)
-	DB	$00	; $00 - ROM Only
+  ; $0147 (Cartridge type - all Color GameBoy cartridges are at least $19)
+  DB	$00	; $00 - ROM Only
 
-	; $0148 (ROM size)
-	DB	$00	; $00 - 256Kbit = 32Kbyte = 2 banks
+  ; $0148 (ROM size)
+  DB	$00	; $00 - 256Kbit = 32Kbyte = 2 banks
 
-	; $0149 (RAM size)
-	DB	$00	; $00 - None
+  ; $0149 (RAM size)
+  DB	$00	; $00 - None
 
-	; $014A (Destination code)
-	DB	$00	; $01 - All others
-			; $00 - Japan
+  ; $014A (Destination code)
+  DB	$00	; $01 - All others
+      ; $00 - Japan
 
-	; $014B (Licensee code - this _must_ be $33)
-	DB	$33	; $33 - Check $0144/$0145 for Licensee code.
+  ; $014B (Licensee code - this _must_ be $33)
+  DB	$33	; $33 - Check $0144/$0145 for Licensee code.
 
-	; $014C (Mask ROM version - handled by RGBFIX)
-	DB	$00
+  ; $014C (Mask ROM version - handled by RGBFIX)
+  DB	$00
 
-	; $014D (Complement check - handled by RGBFIX)
-	DB	$00
+  ; $014D (Complement check - handled by RGBFIX)
+  DB	$00
 
-	; $014E-$014F (Cartridge checksum - handled by RGBFIX)
-	DW	$00
+  ; $014E-$014F (Cartridge checksum - handled by RGBFIX)
+  DW	$00
 
 
 ;********************************************************
 ;*	Program Start
 ;********************************************************
 
-	SECTION "Program Start",ROM0[$0150]
+  SECTION "Program Start",ROM0[$0150]
 Start::
-	di			          ;disable interrupts
-	ld	sp,$FFFE	    ;set the stack to $FFFE
-	call WaitVBlank	  ;wait for v-blank
+  di			          ;disable interrupts
+  ld	sp,$FFFE	    ;set the stack to $FFFE
+  call WaitVBlank	  ;wait for v-blank
 
-	ld	a,0
-	ldh	[rLCDC],a	    ;turn off LCD 
+  ld	a,0
+  ldh	[rLCDC],a	    ;turn off LCD 
 
-	ld	a,%11100100	  ;load a normal palette up 11 10 01 00 - dark->light
-	ldh	[rBGP],a	    ;load the palette
+  ld	a,%11100100	  ;load a normal palette up 11 10 01 00 - dark->light
+  ldh	[rBGP],a	    ;load the palette
 
   call ClearMap	    ;clear screen
 
-	call ClearVRAM    ;wipe VRAM
+  call ClearVRAM    ;wipe VRAM
 
-	ld hl, TileLabel
-	ld de, _VRAM ;$8000
-	ld bc, TileLabelEnd - TileLabel
+  ld hl, TileLabel
+  ld de, _VRAM ;$8000
+  ld bc, TileLabelEnd - TileLabel
   call copy
 
-	ld hl, map
-	ld de, _SCRN0 ;$9800
-	ld bc, mapEnd - map
+  ld hl, map
+  ld de, _SCRN0 ;$9800
+  ld bc, mapEnd - map
   call copy
 
-	ld	a,%10010001		;  =$91 
-	ldh	[rLCDC],a	    ;turn on the LCD, BG, etc
+  ld	a,%10010001		;  =$91 
+  ldh	[rLCDC],a	    ;turn on the LCD, BG, etc
 
 Loop::
   call WaitVBlank	  ;wait for v-blank
 
-	ld hl, $FF00      ; I/O address for controls
-	ld [hl], $20      ; set bit 5 to get joypad input
-	
+  ld hl, $FF00      ; I/O address for controls
+  ld [hl], $20      ; set bit 5 to get joypad input
+  
   bit 2, [hl]       ; check if up on the joypad is pressed
   bit 2, [hl]       ; check if up on the joypad is pressed
   bit 2, [hl]       ; check if up on the joypad is pressed
   bit 2, [hl]       ; check if up on the joypad is pressed
-	
-	jp z, MoveScreen  ; if 0(pressed) jump to label
+  
+  jp z, MoveScreen  ; if 0(pressed) jump to label
 
-	jp Loop
+  jp Loop
 
-;***************************************************************
+;**********************************************************
 ;* Subroutines
-;***************************************************************
+;**********************************************************
 
-	SECTION "Support Routines",ROM0
+  SECTION "Support Routines",ROM0
 
 WaitVBlank::
-	ldh	a,[rLY]		      ;get current scanline
-	cp	$91			        ;Are we in v-blank yet?
-	jr	nz,WaitVBlank	  ;if A-91 != 0 then loop
-	ret				          ;done
-	
+  ldh	a,[rLY]		      ;get current scanline
+  cp	$91			        ;Are we in v-blank yet?
+  jr	nz,WaitVBlank	  ;if A-91 != 0 then loop
+  ret				          ;done
+  
 ClearMap::
   ld hl, _SCRN0
   ld bc, SCRN_Y_B * SCRN_VX_B  ; Only clear a screen's worth of VRAM
@@ -179,10 +179,10 @@ ClearMap::
   ret
 
 ClearVRAM::
-	ld hl, _VRAM
-	ld bc, 32 * 32
+  ld hl, _VRAM
+  ld bc, 32 * 32
   call ClearLoop
-	ret
+  ret
 
 ClearLoop::
   xor a ; A is trashed on every loop iteration, restore it
@@ -191,29 +191,29 @@ ClearLoop::
   ld a, b
   or c
   jr nz, ClearLoop	
-	ret
-	
+  ret
+  
 copy::
-	inc	b
-	inc	c
-	jr	.skip
+  inc	b
+  inc	c
+  jr	.skip
 .copy
-	ld	a,[hl+]
-	ld	[de],a
-	inc	de
+  ld	a,[hl+]
+  ld	[de],a
+  inc	de
 .skip
-	dec	c
-	jr	nz,.copy
-	dec	b
-	jr	nz,.copy
-	ret
+  dec	c
+  jr	nz,.copy
+  dec	b
+  jr	nz,.copy
+  ret
 
 MoveScreen::
   ld a, [rSCX]
-	inc a  	
+  inc a  	
   ld hl, rSCX
   ld [hl], a
-	ret
+  ret
 
 TileLabel::
 DB $00,$00,$00,$00,$00,$00,$00,$00

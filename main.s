@@ -108,7 +108,10 @@ REPT 6
 ENDR
 
   bit 2, a ; Check if Up is held
-  call z, MoveScreen ; Careful, 0 = held!
+  jr nz, .dontMoveScreen
+  ld hl, rSCX
+  inc [hl]
+.dontMoveScreen
 
   jp Loop
 
@@ -158,11 +161,6 @@ Memcpy::
   jr nz,.copy
   dec b
   jr nz,.copy
-  ret
-
-MoveScreen::
-  ld hl, rSCX
-  inc [hl]
   ret
 
 TileLabel::

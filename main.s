@@ -128,16 +128,13 @@ WaitVBlank::
 ClearMap::
   ld hl, _SCRN0
   ld bc, SCRN_Y_B * SCRN_VX_B  ; Only clear a screen's worth of VRAM
-  call ClearLoop
-  ret
-
-ClearLoop::
+.clearLoop
   xor a ; A is trashed on every loop iteration, restore it
   ld [hli], a
   dec bc ; This doesn't affect flags
   ld a, b
   or c
-  jr nz, ClearLoop
+  jr nz, .clearLoop
   ret
 
 Memcpy::

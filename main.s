@@ -93,20 +93,22 @@ Start::
   call copy
 
   ld a, %10010001;  =$91
-  ldh [rLCDC],a    ;turn on the LCD, BG, etc
+  ldh [rLCDC],a ; turn on the LCD, BG, etc
 
 Loop::
-  call WaitVBlank  ;wait for v-blank
+  call WaitVBlank ; Wait for v-blank
 
-  ld hl, $FF00      ; I/O address for controls
-  ld [hl], $20      ; set bit 5 to get joypad input
+  ; Read joypad
+  ld c, LOW(rP1)
+  ld a, $20 ; Reset bit 4 to get directional input
+  ldh [c], a
+  ; Read several times because we think it's needed
+REPT 6
+  ldh a, [c]
+ENDR
 
-  bit 2, [hl]       ; check if up on the joypad is pressed
-  bit 2, [hl]       ; check if up on the joypad is pressed
-  bit 2, [hl]       ; check if up on the joypad is pressed
-  bit 2, [hl]       ; check if up on the joypad is pressed
-
-  call z, MoveScreen  ; if 0(pressed) jump to label
+  bit 2, a ; Check if Up is held
+  call z, MoveScreen ; Careful, 0 = held!
 
   jp Loop
 

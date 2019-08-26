@@ -72,8 +72,56 @@ VBlankHandler:
   ldh [rWY], a
   ldh a, [hWX]
   ldh [rWX], a
+
+  ; Now, begin operations that can be interrupted
+  ; (this is interesting if other interrupts start being used)
+  ei
+
+  ; Check if the VBlank handler is being waited for,
+  ; or if this is a lag frame
+  ldh a, [hVBlankFlag]
+  and a
+  jr nz, .notLagFrame
   pop af
-  reti
+  ret
+
+.notLagFrame
+  ; Perform operations that could break if done in the middle of processing
+  push bc
+
+  ; Update joypad
+  ld c, LOW(rP1)
+  ld a, $20 ; Select directions
+  ldh [c], a
+REPT 6 ; Read several times in a row because Nintendo's manual says so. The amount is empirical... :|
+  ldh a, [c]
+ENDR
+  or $F0 ; Set the top 4 bits (purpose made clear later)
+  swap a ; Put the key's bits in the top 4 bits, as is the de-facto standard
+  ld b, a
+  ld a, $10
+  ldh [c], a
+REPT 6
+  ldh a, [c]
+ENDR
+  or $F0 ; Set the top 4 bits again
+  xor b ; Mix with the 4 keys in B, and invert all bits at the same time
+  ld b, a ; Store this to compute pressed keys
+
+  ldh a, [hHeldButtons] ; Get buttons held on previous frame
+  xor b ; Get buttons that changed state since previous frame
+  and b ; Changed state + held now => just pressed!
+  ldh [hPressedButtons], a
+
+  ld a, b
+  ldh [hHeldButtons], a
+
+  pop bc
+  pop af
+  xor a
+  ldh [hVBlankFlag], a
+  pop af ; Remove the top entry on the stack to return from `WaitVBlank`
+  ret
 
 SECTION "Header", ROM0[$100]
   nop
@@ -151,17 +199,9 @@ Start::
 Loop::
   call WaitVBlank ; Wait for v-blank
 
-  ; Read joypad
-  ld c, LOW(rP1)
-  ld a, $20 ; Reset bit 4 to get directional input
-  ldh [c], a
-  ; Read several times because we think it's needed
-REPT 6
-  ldh a, [c]
-ENDR
-
-  bit 2, a ; Check if Up is held
-  jr nz, .dontMoveScreen
+  ldh a, [hHeldButtons]
+  bit PADB_UP, a
+  jr z, .dontMoveScreen
   ld hl, hSCX
   inc [hl]
 .dontMoveScreen
@@ -175,8 +215,11 @@ ENDR
 SECTION "Support Routines",ROM0
 
 WaitVBlank::
+  ld a, 1
+  ldh [hVBlankFlag], a
+.wait
   halt
-  ret
+  jr .wait
 
 Memcpy::
   inc b

@@ -80,8 +80,6 @@ Start::
 
   call ClearMap ; Clear screen
 
-  call ClearVRAM ; Wipe VRAM
-
   ld hl, TileLabel
   ld de, _VRAM ; $8000
   ld bc, TileLabelEnd - TileLabel
@@ -130,12 +128,6 @@ WaitVBlank::
 ClearMap::
   ld hl, _SCRN0
   ld bc, SCRN_Y_B * SCRN_VX_B  ; Only clear a screen's worth of VRAM
-  call ClearLoop
-  ret
-
-ClearVRAM::
-  ld hl, _VRAM
-  ld bc, 32 * 32
   call ClearLoop
   ret
 

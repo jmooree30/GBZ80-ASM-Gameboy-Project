@@ -76,9 +76,7 @@ Start::
   ldh [rLCDC],a ; Turn off LCD
 
   ld a, %11100100 ; Load a normal palette up 11 10 01 00 - dark->light
-  ldh [rBGP],a
-
-  call ClearMap ; Clear screen
+  ldh [rBGP], a
 
   ld hl, TileLabel
   ld de, _VRAM ; $8000
@@ -123,18 +121,6 @@ WaitVBlank::
   ldh a, [rLY] ; Get current scanline
   cp SCRN_Y ; Are we in v-blank yet?
   jr nz, WaitVBlank ; If A-91 != 0 then loop
-  ret
-
-ClearMap::
-  ld hl, _SCRN0
-  ld bc, SCRN_Y_B * SCRN_VX_B  ; Only clear a screen's worth of VRAM
-.clearLoop
-  xor a ; A is trashed on every loop iteration, restore it
-  ld [hli], a
-  dec bc ; This doesn't affect flags
-  ld a, b
-  or c
-  jr nz, .clearLoop
   ret
 
 Memcpy::

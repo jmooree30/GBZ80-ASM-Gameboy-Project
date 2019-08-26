@@ -1,4 +1,4 @@
-; system includes
+; System includes
 INCLUDE "hardware.inc"
 
 
@@ -68,32 +68,32 @@ SECTION "Header", ROM0[$100]
 
 SECTION "Program Start",ROM0[$0150]
 Start::
-  di          ;disable interrupts
+  di ; Disable interrupts
   ld sp, wStackBottom
-  call WaitVBlank  ;wait for v-blank
 
+  call WaitVBlank ; Wait for v-blank
   xor a
-  ldh [rLCDC],a    ;turn off LCD
+  ldh [rLCDC],a ; Turn off LCD
 
-  ld a, %11100100  ;load a normal palette up 11 10 01 00 - dark->light
-  ldh [rBGP],a    ;load the palette
+  ld a, %11100100 ; Load a normal palette up 11 10 01 00 - dark->light
+  ldh [rBGP],a
 
-  call ClearMap    ;clear screen
+  call ClearMap ; Clear screen
 
-  call ClearVRAM    ;wipe VRAM
+  call ClearVRAM ; Wipe VRAM
 
   ld hl, TileLabel
-  ld de, _VRAM ;$8000
+  ld de, _VRAM ; $8000
   ld bc, TileLabelEnd - TileLabel
   call copy
 
   ld hl, map
-  ld de, _SCRN0 ;$9800
+  ld de, _SCRN0 ; $9800
   ld bc, mapEnd - map
   call copy
 
-  ld a, %10010001;  =$91
-  ldh [rLCDC],a ; turn on the LCD, BG, etc
+  ld a, LCDCF_ON | LCDCF_BG8000 | LCDCF_BGON
+  ldh [rLCDC],a
 
 Loop::
   call WaitVBlank ; Wait for v-blank
@@ -119,10 +119,10 @@ ENDR
 SECTION "Support Routines",ROM0
 
 WaitVBlank::
-  ldh a, [rLY]      ;get current scanline
-  cp $91        ;Are we in v-blank yet?
-  jr nz,WaitVBlank  ;if A-91 != 0 then loop
-  ret          ;done
+  ldh a, [rLY] ; Get current scanline
+  cp SCRN_Y ; Are we in v-blank yet?
+  jr nz, WaitVBlank ; If A-91 != 0 then loop
+  ret
 
 ClearMap::
   ld hl, _SCRN0

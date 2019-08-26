@@ -69,7 +69,7 @@ SECTION "Header", ROM0[$100]
 SECTION "Program Start",ROM0[$0150]
 Start::
   di          ;disable interrupts
-  ld sp, $FFFE    ;set the stack to $FFFE
+  ld sp, wStackBottom
   call WaitVBlank  ;wait for v-blank
 
   xor a

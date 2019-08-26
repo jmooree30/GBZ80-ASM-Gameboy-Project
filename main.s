@@ -161,10 +161,8 @@ Memcpy::
   ret
 
 MoveScreen::
-  ld a, [rSCX]
-  inc a
   ld hl, rSCX
-  ld [hl], a
+  inc [hl]
   ret
 
 TileLabel::

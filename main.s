@@ -1,36 +1,41 @@
 ; System includes
 INCLUDE "hardware.inc"
+INCLUDE "defines.inc"
 
 
-SECTION "Org $00", ROM0[$00]
+SECTION "Rst $00", ROM0[$00]
 RST_00:
   jp $100
 
-SECTION "Org $08", ROM0[$08]
-RST_08:
-  jp $100
+SECTION "Rst $08", ROM0[$08]
+WaitVBlank:
+  ld a, 1
+  ldh [hVBlankFlag], a
+.wait
+  halt
+  jr .wait
 
-SECTION "Org $10", ROM0[$10]
+SECTION "Rst $10", ROM0[$10]
 RST_10:
   jp $100
 
-SECTION "Org $18", ROM0[$18]
+SECTION "Rst $18", ROM0[$18]
 RST_18:
   jp $100
 
-SECTION "Org $20", ROM0[$20]
+SECTION "Rst $20", ROM0[$20]
 RST_20:
   jp $100
 
-SECTION "Org $28", ROM0[$28]
+SECTION "Rst $28", ROM0[$28]
 RST_28:
   jp $100
 
-SECTION "Org $30", ROM0[$30]
+SECTION "Rst $30", ROM0[$30]
 RST_30:
   jp $100
 
-SECTION "Org $38", ROM0[$38]
+SECTION "Rst $38", ROM0[$38]
 RST_38:
   jp $100
 
@@ -197,7 +202,7 @@ Start::
 
 
 Loop::
-  call WaitVBlank ; Wait for v-blank
+  rst wait_vblank
 
   ldh a, [hHeldButtons]
   bit PADB_UP, a
@@ -212,14 +217,7 @@ Loop::
 ;* Subroutines
 ;**********************************************************
 
-SECTION "Support Routines",ROM0
-
-WaitVBlank::
-  ld a, 1
-  ldh [hVBlankFlag], a
-.wait
-  halt
-  jr .wait
+SECTION "Support Routines", ROM0
 
 Memcpy::
   inc b

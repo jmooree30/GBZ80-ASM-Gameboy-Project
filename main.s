@@ -36,8 +36,11 @@ RST_38:
 
 SECTION "Interrupts", ROM0[$40]
   ; VBlank
-  reti
-  ds 7
+  push af ; It's crucial to presrve registers, otherwise main code will screw up
+  ldh a, [hLCDC]
+  ldh [rLCDC], a
+  jr VBlankHandler ; This space is too cramped, move out!
+  ds 1
 
   ; LCD
   reti
@@ -54,6 +57,24 @@ SECTION "Interrupts", ROM0[$40]
   ; Joypad
   reti
 
+VBlankHandler:
+  ldh a, [hBGP]
+  ldh [rBGP], a
+  ldh a, [hOBP0]
+  ldh [rOBP0], a
+  ldh a, [hOBP1]
+  ldh [rOBP1], a
+  ldh a, [hSCY]
+  ldh [rSCY], a
+  ldh a, [hSCX]
+  ldh [rSCX], a
+  ldh a, [hWY]
+  ldh [rWY], a
+  ldh a, [hWX]
+  ldh [rWX], a
+  pop af
+  reti
+
 SECTION "Header", ROM0[$100]
   nop
   jp Start
@@ -68,9 +89,13 @@ SECTION "Header", ROM0[$100]
 
 SECTION "Program Start",ROM0[$0150]
 Start::
-  di ; Disable interrupts
+  di ; Disable interrupts so they won't screw up init
   ld sp, wStackBottom
 
+
+  ; Init video stuff
+
+  ; Turn off LCD
   ; Wait for VBlank without interrupts
 .waitVBlank
   ldh a, [rLY]
@@ -79,12 +104,8 @@ Start::
   xor a
   ldh [rLCDC],a ; Turn off LCD
 
-  ; Enable only the VBlank interrupt
-  ld a, IEF_VBLANK
-  ldh [rIE], a
-
   ld a, %11100100 ; Load a normal palette up 11 10 01 00 - dark->light
-  ldh [rBGP], a
+  ldh [hBGP], a
 
   ld hl, TileLabel
   ld de, _VRAM ; $8000
@@ -96,8 +117,30 @@ Start::
   ld bc, mapEnd - map
   call Memcpy
 
+  ; Turn on LCD again
   ld a, LCDCF_ON | LCDCF_BG8000 | LCDCF_BGON
-  ldh [rLCDC],a
+  ldh [rLCDC], a
+  ldh [hLCDC], a
+  ; First frame is fully blank, so do something else in the meantime
+
+
+  ; Init non-video memory
+
+  ld c, LOW(hClearStart)
+  xor a
+.clearHRAM
+  ldh [c], a
+  inc c ; Clear until $FFFF, which is rIE, but we'll overwrite it below
+  jr nz, .clearHRAM
+
+
+  ; Init interrupts
+
+  ; Enable only the VBlank interrupt
+  ld a, IEF_VBLANK
+  ldh [rIE], a
+
+  ; Finish by re-enabling interrupts and going to the meat of the program
 
   ; Clear any interrupts that might have accumulated while disabled
   xor a
@@ -119,7 +162,7 @@ ENDR
 
   bit 2, a ; Check if Up is held
   jr nz, .dontMoveScreen
-  ld hl, rSCX
+  ld hl, hSCX
   inc [hl]
 .dontMoveScreen
 

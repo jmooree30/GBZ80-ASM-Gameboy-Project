@@ -1,58 +1,132 @@
-; system includes
+; System includes
 INCLUDE "hardware.inc"
+INCLUDE "defines.inc"
 
 
-SECTION "Org $00", ROM0[$00]
+SECTION "Rst $00", ROM0[$00]
 RST_00:
   jp $100
 
-SECTION "Org $08", ROM0[$08]
-RST_08:
-  jp $100
+SECTION "Rst $08", ROM0[$08]
+WaitVBlank:
+  ld a, 1
+  ldh [hVBlankFlag], a
+.wait
+  halt
+  jr .wait
 
-SECTION "Org $10", ROM0[$10]
+SECTION "Rst $10", ROM0[$10]
 RST_10:
   jp $100
 
-SECTION "Org $18", ROM0[$18]
+SECTION "Rst $18", ROM0[$18]
 RST_18:
   jp $100
 
-SECTION "Org $20", ROM0[$20]
+SECTION "Rst $20", ROM0[$20]
 RST_20:
   jp $100
 
-SECTION "Org $28", ROM0[$28]
+SECTION "Rst $28", ROM0[$28]
 RST_28:
   jp $100
 
-SECTION "Org $30", ROM0[$30]
+SECTION "Rst $30", ROM0[$30]
 RST_30:
   jp $100
 
-SECTION "Org $38", ROM0[$38]
+SECTION "Rst $38", ROM0[$38]
 RST_38:
   jp $100
 
-SECTION "V-Blank IRQ Vector", ROM0[$40]
-VBL_VECT:
+SECTION "Interrupts", ROM0[$40]
+  ; VBlank
+  push af ; It's crucial to presrve registers, otherwise main code will screw up
+  ldh a, [hLCDC]
+  ldh [rLCDC], a
+  jr VBlankHandler ; This space is too cramped, move out!
+  ds 1
+
+  ; LCD
+  reti
+  ds 7
+
+  ; Timer
+  reti
+  ds 7
+
+  ; Serial
+  reti
+  ds 7
+
+  ; Joypad
   reti
 
-SECTION "LCD IRQ Vector", ROM0[$48]
-LCD_VECT:
-  reti
+VBlankHandler:
+  ldh a, [hBGP]
+  ldh [rBGP], a
+  ldh a, [hOBP0]
+  ldh [rOBP0], a
+  ldh a, [hOBP1]
+  ldh [rOBP1], a
+  ldh a, [hSCY]
+  ldh [rSCY], a
+  ldh a, [hSCX]
+  ldh [rSCX], a
+  ldh a, [hWY]
+  ldh [rWY], a
+  ldh a, [hWX]
+  ldh [rWX], a
 
-SECTION "Timer IRQ Vector", ROM0[$50]
-TIMER_VECT:
-  reti
+  ; Now, begin operations that can be interrupted
+  ; (this is interesting if other interrupts start being used)
+  ei
 
-SECTION "Serial IRQ Vector", ROM0[$58]
-SERIAL_VECT:
-  reti
+  ; Check if the VBlank handler is being waited for,
+  ; or if this is a lag frame
+  ldh a, [hVBlankFlag]
+  and a
+  jr nz, .notLagFrame
+  pop af
+  ret
 
-SECTION "Joypad IRQ Vector", ROM0[$60]
-JOYPAD_VECT:
-  reti
+.notLagFrame
+  ; Perform operations that could break if done in the middle of processing
+  push bc
+
+  ; Update joypad
+  ld c, LOW(rP1)
+  ld a, $20 ; Select directions
+  ldh [c], a
+REPT 6 ; Read several times in a row because Nintendo's manual says so. The amount is empirical... :|
+  ldh a, [c]
+ENDR
+  or $F0 ; Set the top 4 bits (purpose made clear later)
+  swap a ; Put the key's bits in the top 4 bits, as is the de-facto standard
+  ld b, a
+  ld a, $10
+  ldh [c], a
+REPT 6
+  ldh a, [c]
+ENDR
+  or $F0 ; Set the top 4 bits again
+  xor b ; Mix with the 4 keys in B, and invert all bits at the same time
+  ld b, a ; Store this to compute pressed keys
+
+  ldh a, [hHeldButtons] ; Get buttons held on previous frame
+  xor b ; Get buttons that changed state since previous frame
+  and b ; Changed state + held now => just pressed!
+  ldh [hPressedButtons], a
+
+  ld a, b
+  ldh [hHeldButtons], a
+
+  pop bc
+  pop af
+  xor a
+  ldh [hVBlankFlag], a
+  pop af ; Remove the top entry on the stack to return from `WaitVBlank`
+  ret
 
 SECTION "Header", ROM0[$100]
   nop
@@ -68,45 +142,74 @@ SECTION "Header", ROM0[$100]
 
 SECTION "Program Start",ROM0[$0150]
 Start::
-  di          ;disable interrupts
-  ld sp, $FFFE    ;set the stack to $FFFE
-  call WaitVBlank  ;wait for v-blank
+  di ; Disable interrupts so they won't screw up init
+  ld sp, wStackBottom
 
+
+  ; Init video stuff
+
+  ; Turn off LCD
+  ; Wait for VBlank without interrupts
+.waitVBlank
+  ldh a, [rLY]
+  cp SCRN_Y
+  jr nz, .waitVBlank
   xor a
-  ldh [rLCDC],a    ;turn off LCD
+  ldh [rLCDC],a ; Turn off LCD
 
-  ld a, %11100100  ;load a normal palette up 11 10 01 00 - dark->light
-  ldh [rBGP],a    ;load the palette
-
-  call ClearMap    ;clear screen
-
-  call ClearVRAM    ;wipe VRAM
+  ld a, %11100100 ; Load a normal palette up 11 10 01 00 - dark->light
+  ldh [hBGP], a
 
   ld hl, TileLabel
-  ld de, _VRAM ;$8000
+  ld de, _VRAM ; $8000
   ld bc, TileLabelEnd - TileLabel
-  call copy
+  call Memcpy
 
   ld hl, map
-  ld de, _SCRN0 ;$9800
+  ld de, _SCRN0 ; $9800
   ld bc, mapEnd - map
-  call copy
+  call Memcpy
 
-  ld a, %10010001;  =$91
-  ldh [rLCDC],a    ;turn on the LCD, BG, etc
+  ; Turn on LCD again
+  ld a, LCDCF_ON | LCDCF_BG8000 | LCDCF_BGON
+  ldh [rLCDC], a
+  ldh [hLCDC], a
+  ; First frame is fully blank, so do something else in the meantime
+
+
+  ; Init non-video memory
+
+  ld c, LOW(hClearStart)
+  xor a
+.clearHRAM
+  ldh [c], a
+  inc c ; Clear until $FFFF, which is rIE, but we'll overwrite it below
+  jr nz, .clearHRAM
+
+
+  ; Init interrupts
+
+  ; Enable only the VBlank interrupt
+  ld a, IEF_VBLANK
+  ldh [rIE], a
+
+  ; Finish by re-enabling interrupts and going to the meat of the program
+
+  ; Clear any interrupts that might have accumulated while disabled
+  xor a
+  ei ; Enable interrupts *after* next instruction
+  ldh [rIF], a ; Clear pending interrupts, we don't want any interrupt to misfire
+
 
 Loop::
-  call WaitVBlank  ;wait for v-blank
+  rst wait_vblank
 
-  ld hl, $FF00      ; I/O address for controls
-  ld [hl], $20      ; set bit 5 to get joypad input
-
-  bit 2, [hl]       ; check if up on the joypad is pressed
-  bit 2, [hl]       ; check if up on the joypad is pressed
-  bit 2, [hl]       ; check if up on the joypad is pressed
-  bit 2, [hl]       ; check if up on the joypad is pressed
-
-  call z, MoveScreen  ; if 0(pressed) jump to label
+  ldh a, [hHeldButtons]
+  bit PADB_UP, a
+  jr z, .dontMoveScreen
+  ld hl, hSCX
+  inc [hl]
+.dontMoveScreen
 
   jp Loop
 
@@ -114,55 +217,21 @@ Loop::
 ;* Subroutines
 ;**********************************************************
 
-SECTION "Support Routines",ROM0
+SECTION "Support Routines", ROM0
 
-WaitVBlank::
-  ldh a, [rLY]      ;get current scanline
-  cp $91        ;Are we in v-blank yet?
-  jr nz,WaitVBlank  ;if A-91 != 0 then loop
-  ret          ;done
-
-ClearMap::
-  ld hl, _SCRN0
-  ld bc, SCRN_Y_B * SCRN_VX_B  ; Only clear a screen's worth of VRAM
-  call ClearLoop
-  ret
-
-ClearVRAM::
-  ld hl, _VRAM
-  ld bc, 32 * 32
-  call ClearLoop
-  ret
-
-ClearLoop::
-  xor a ; A is trashed on every loop iteration, restore it
-  ld [hli], a
-  dec bc ; This doesn't affect flags
-  ld a, b
-  or c
-  jr nz, ClearLoop
-  ret
-
-copy::
+Memcpy::
   inc b
   inc c
-  jr .skip
+  jr .firstLoop
 .copy
   ld a, [hl+]
   ld [de], a
   inc de
-.skip
+.firstLoop
   dec c
   jr nz,.copy
   dec b
   jr nz,.copy
-  ret
-
-MoveScreen::
-  ld a, [rSCX]
-  inc a
-  ld hl, rSCX
-  ld [hl], a
   ret
 
 TileLabel::

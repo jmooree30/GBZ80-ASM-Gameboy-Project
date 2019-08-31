@@ -18,9 +18,9 @@ mapWidth  EQU 32
 mapHeight EQU 32
 mapBank   EQU 0
 
- SECTION "map", HOME
+ SECTION "map", ROM0
 
-map::
+Map::
 DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
 DB $0D,$0D,$0D,$0D,$0E,$0D,$0E,$0D,$0E,$0D
 DB $0D,$0D,$08,$0E,$0E,$0E,$0E,$0E,$09,$0E
@@ -124,5 +124,6 @@ DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
 DB $0D,$0D,$0E,$0D,$0E,$0E,$0D,$0D,$0E,$0D
 DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
 DB $0D,$0D,$0D,$0D
+MapEnd::
 
 ; End of MAP.Z80

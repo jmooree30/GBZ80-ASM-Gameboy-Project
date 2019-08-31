@@ -1,6 +1,8 @@
 ; System includes
 INCLUDE "hardware.inc"
 INCLUDE "defines.inc"
+INCLUDE "assets/tiles.z80"
+INCLUDE "assets/map.z80"
 
 
 SECTION "Rst $00", ROM0[$00]
@@ -63,6 +65,7 @@ SECTION "Interrupts", ROM0[$40]
   reti
 
 VBlankHandler:
+  ; Copies values from shadow registers into their corresponding copies
   ldh a, [hBGP]
   ldh [rBGP], a
   ldh a, [hOBP0]
@@ -165,9 +168,9 @@ Start::
   ld bc, TileLabelEnd - TileLabel
   call Memcpy
 
-  ld hl, map
+  ld hl, Map
   ld de, _SCRN0 ; $9800
-  ld bc, mapEnd - map
+  ld bc, MapEnd - Map
   call Memcpy
 
   ; Turn on LCD again
@@ -233,157 +236,6 @@ Memcpy::
   dec b
   jr nz,.copy
   ret
-
-TileLabel::
-DB $00,$00,$00,$00,$00,$00,$00,$00
-DB $00,$00,$00,$00,$00,$00,$00,$00
-DB $7D,$C2,$BF,$C0,$7F,$C0,$B7,$C8
-DB $7F,$C0,$BD,$C2,$7F,$C0,$BF,$C0
-DB $55,$FF,$AA,$FF,$7F,$C0,$BF,$C0
-DB $7F,$C0,$BF,$C0,$7F,$C0,$BF,$C0
-DB $55,$FF,$AA,$FF,$FF,$00,$FD,$02
-DB $DF,$20,$FF,$00,$FB,$04,$FF,$00
-DB $55,$FF,$AA,$FF,$FF,$00,$7F,$80
-DB $FD,$02,$FF,$00,$BF,$40,$FF,$00
-DB $55,$FF,$AA,$FF,$FD,$03,$FE,$03
-DB $BD,$43,$EE,$13,$FD,$03,$FE,$03
-DB $FF,$AA,$FF,$55,$FF,$AA,$FF,$55
-DB $FF,$AA,$FF,$55,$FF,$AA,$FF,$55
-DB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
-DB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
-DB $FF,$00,$FB,$04,$FF,$00,$FF,$00
-DB $DF,$20,$FF,$00,$FD,$02,$FF,$00
-DB $FF,$00,$FD,$42,$FF,$00,$FF,$00
-DB $FF,$00,$FF,$02,$FF,$00,$FF,$00
-DB $00,$AA,$00,$55,$00,$AA,$00,$55
-DB $00,$AA,$00,$55,$00,$AA,$00,$55
-DB $00,$FF,$81,$7E,$C3,$3C,$E7,$18
-DB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-DB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-DB $E7,$18,$C3,$3C,$81,$7E,$00,$FF
-DB $BD,$C3,$81,$FF,$BD,$C3,$81,$FF
-DB $BD,$C3,$81,$FF,$BD,$C3,$FF,$FF
-DB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-DB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-DB $FF,$FF,$FF,$22,$FF,$22,$FF,$FF
-DB $FF,$44,$FF,$44,$FF,$FF,$FF,$00
-DB $FF,$FF,$FF,$42,$FF,$42,$FF,$42
-DB $FF,$FF,$FF,$24,$FF,$24,$FF,$FF
-DB $FF,$24,$FF,$FF,$FF,$42,$FF,$42
-DB $FF,$FF,$FF,$24,$FF,$24,$FF,$FF
-DB $FF,$FF,$FF,$81,$FF,$81,$FF,$FF
-DB $FF,$42,$FF,$42,$FF,$42,$FF,$FF
-DB $FF,$FF,$FF,$40,$FF,$40,$FF,$FF
-DB $FF,$08,$FF,$08,$FF,$FF,$FF,$24
-DB $FF,$FF,$FF,$24,$FF,$24,$FF,$FF
-DB $FF,$42,$FF,$42,$FF,$FF,$FF,$24
-TileLabelEnd::
-
-map::
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0E,$0D,$0E,$0D,$0E,$0D
-DB $0D,$0D,$08,$0E,$0E,$0E,$0E,$0E,$09,$0E
-DB $0E,$08,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0E,$0E,$0E,$0E
-DB $0E,$0D,$0D,$0D,$0E,$0E,$0E,$08,$0E,$0D
-DB $0D,$0E,$0E,$0E,$0D,$0D,$08,$0E,$0E,$09
-DB $0E,$0E,$0E,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0E,$0E,$0E,$0E
-DB $0D,$0D,$0D,$0D,$0E,$09,$0D,$0D,$0E,$0E
-DB $0D,$0D,$0E,$0E,$0E,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0E,$08
-DB $0E,$0E,$0E,$0D,$0D,$0E,$0E,$0E,$0D,$0D
-DB $0E,$0D,$0D,$0D,$0D,$0E,$09,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0E,$0E,$0E,$09,$0E,$0E,$0E,$0E,$08,$0E
-DB $0D,$0D,$09,$0D,$0D,$0D,$0D,$0E,$0E,$0D
-DB $0D,$08,$0E,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0E,$0E,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0E,$0D,$0D,$0D,$0E,$0E
-DB $0E,$08,$0E,$0E,$0E,$0E,$09,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0E,$08,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0E,$09,$0E,$0E
-DB $0E,$09,$0E,$0E,$0E,$09,$0E,$0E,$0E,$0D
-DB $0D,$0D,$08,$0E,$0E,$0E,$0E,$0E,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0E
-DB $0E,$08,$0E,$0E,$0E,$0E,$0E,$08,$0E,$0E
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0E,$0E,$0E,$0E,$0E,$08,$0E,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$09,$0E,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0E,$0E,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0E,$0E,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0E,$0E,$0E,$0E,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0E
-DB $08,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0E,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0E,$0E,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0E,$0E,$0E,$0D,$0E
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0E,$09,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0E,$0E,$0D,$0E
-DB $0E,$0E,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$08,$0E,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0E,$0D
-DB $0D,$0D,$0E,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0E,$0E,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0E,$0E,$0E,$0D,$0D,$0E,$0D,$0D,$0D,$0D
-DB $09,$0E,$0E,$0E,$0E,$0E,$0E,$0E,$0E,$08
-DB $0E,$0E,$0E,$0E,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0E,$0E,$0E,$0E,$0D,$0D
-DB $0D,$0D,$0E,$09,$0E,$0E,$0E,$0E,$08,$0E
-DB $0E,$0E,$0E,$0E,$08,$0E,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0E,$0E,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0E,$0E,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$09,$0E,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0E,$0E
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0E,$0E
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0E,$0E,$08,$0E,$0E,$0E,$0E,$0E,$0E,$0E
-DB $08,$0E,$0E,$09,$0D,$0D,$0E,$0E,$0E,$0E
-DB $0E,$0E,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$09,$0E,$0E,$0E,$08,$0E,$0E,$0E
-DB $0E,$0E,$0E,$0E,$0E,$0E,$0D,$0D,$0E,$08
-DB $0D,$0E,$08,$0E,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0E,$08,$0E,$0E,$0D,$0E,$0E,$0D,$0D
-DB $0E,$0D,$0D,$0D,$0E,$0E,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0E,$0D,$0D,$0D,$0D,$0E,$0E
-DB $0D,$0D,$0E,$0D,$0D,$0D,$0D,$0E,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0E,$0D,$0D,$0D,$08
-DB $0E,$08,$0D,$0D,$09,$0E,$0E,$08,$0D,$0E
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0E,$08,$0D
-DB $0D,$0E,$0E,$0E,$0D,$0D,$0D,$0D,$0D,$0E
-DB $0E,$08,$0D,$0D,$0D,$0D,$0E,$0E,$0E,$0E
-DB $0E,$0E,$0E,$0D,$0D,$0D,$0D,$0D,$0D,$0E
-DB $0E,$0E,$0E,$0E,$0E,$0E,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0E,$0D
-DB $0D,$0D,$0E,$0E,$0E,$0D,$0D,$0D,$0D,$0D
-DB $0D,$08,$0E,$0E,$0E,$08,$0E,$0E,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0E,$0E,$0E,$0E,$0D,$0D,$0E,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0E,$0D,$0E,$0E,$0D,$0D,$0E,$0D
-DB $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D
-DB $0D,$0D,$0D,$0D
-mapEnd::
 
 ;*** End Of File ***
 ;_SCRN0

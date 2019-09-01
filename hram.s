@@ -30,3 +30,8 @@ hVBlankFlag::
 ; Buttons being held on this frame
 hHeldButtons::
     db
+
+SECTION "OAM DMA", HRAM
+
+hOAMDMA::
+    ds 8

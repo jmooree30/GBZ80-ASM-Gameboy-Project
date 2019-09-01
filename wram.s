@@ -4,6 +4,7 @@ SECTION "Stack", WRAM0
     ds 64
 wStackBottom::
 
-SECTION "OAM Vars",WRAM0[$C100]
+SECTION "Shadow OAM",WRAM0,ALIGN[8]
 
-playerSprite:: DS 4
+wShadowOAM::
+    ds 40 * 4

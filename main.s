@@ -85,7 +85,7 @@ VBlankHandler:
   ; (this is interesting if other interrupts start being used)
   ei
 
-  ld a, HIGH($C1)
+  ld a, HIGH(wShadowOAM)
   call hOAMDMA
 
   ; Check if the VBlank handler is being waited for,
@@ -176,20 +176,8 @@ Start::
   ld bc, MapEnd - Map
   call Memcpy
 
-  ; Byte 1 is the Y position
-  ld a,24
-  ld [playerSprite],a
-
-  ; Byte 2 is the X position
-  ld a,32
-  ld [playerSprite+1],a
-
-  ; Byte 3 is the tile location
-  ld a, 16
-  ld [playerSprite+2],a
-
   ; Turn on LCD again
-  ld a, LCDCF_ON | LCDCF_BG8000 | LCDCF_BGON
+  ld a, LCDCF_ON | LCDCF_BG8000 |LCDCF_OBJON | LCDCF_BGON
   ldh [rLCDC], a
   ldh [hLCDC], a
   ; First frame is fully blank, so do something else in the meantime
@@ -203,6 +191,25 @@ Start::
   ldh [c], a
   inc c ; Clear until $FFFF, which is rIE, but we'll overwrite it below
   jr nz, .clearHRAM
+
+  ld hl, OAMDMA
+  ld bc, (OAMDMAEnd - OAMDMA) << 8 | LOW(hOAMDMA)
+.copyDMARoutine
+  ld a, [hli]
+  ldh [c], a
+  inc c
+  dec b
+  jr nz, .copyDMARoutine
+
+  ; Clear shadow OAM, so we won't get garbage sprites until we init all of it
+  ; Clearing Y positions is enough, assuming the rest of the code will init sprites wholly
+  ld hl, wShadowOAM + $A0
+.clearOAM
+  ld a, l
+  sub 4
+  ld l, a
+  ld [hl], 0
+  jr nz, .clearOAM
 
 
   ; Init interrupts
@@ -218,14 +225,20 @@ Start::
   ei ; Enable interrupts *after* next instruction
   ldh [rIF], a ; Clear pending interrupts, we don't want any interrupt to misfire
 
-  ld hl, OAMDMA
-  ld bc, (OAMDMAEnd - OAMDMA) << 8 | LOW(hOAMDMA)
-.copyDMARoutine
-  ld a, [hli]
-  ldh [c], a
-  inc c
-  dec b
-  jr nz, .copyDMARoutine
+
+  
+  ; Byte 0 is the Y position
+  ld a, 24
+  ld [wShadowOAM], a
+  ; Byte 1 is the X position
+  ld a, 32
+  ld [wShadowOAM+1], a
+  ; Byte 2 is the tile ID
+  ld a, 16
+  ld [wShadowOAM+2], a
+  ; Byte 3 are the attributes
+  xor a
+  ld [wShadowOAM+3], a
 
 Loop::
   rst wait_vblank

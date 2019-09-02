@@ -234,7 +234,7 @@ Start::
   ld a, 32
   ld [wShadowOAM+1], a
   ; Byte 2 is the tile ID
-  ld a, 16
+  ld a, $15
   ld [wShadowOAM+2], a
   ; Byte 3 are the attributes
   xor a
@@ -242,13 +242,7 @@ Start::
 
 Loop::
   rst wait_vblank
-
-  ldh a, [hHeldButtons]
-  bit PADB_UP, a
-  jr z, .dontMoveScreen
-  ld hl, hSCX
-  inc [hl]
-.dontMoveScreen
+  call UpdateMovements
 
   jp Loop
 
@@ -281,6 +275,31 @@ OAMDMA:
   jr nz, .wait
   ret
 OAMDMAEnd:
+
+UpdateMovements:
+  ldh a, [hHeldButtons]
+.moveUp
+  bit PADB_UP, a
+  jr z, .moveDown
+  ld hl, wShadowOAM
+  dec [hl]
+.moveDown
+  bit PADB_DOWN, a
+  jr z, .moveRight
+  ld hl, wShadowOAM
+  inc [hl]
+.moveRight
+  bit PADB_RIGHT, a
+  jr z, .moveLeft
+  ld hl, wShadowOAM+1
+  inc [hl]
+.moveLeft
+  bit PADB_LEFT, a
+  jr z, .dontMoveScreen
+  ld hl, wShadowOAM+1
+  dec [hl]
+.dontMoveScreen
+ret
 
 ;*** End Of File ***
 ;_SCRN0

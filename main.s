@@ -208,6 +208,10 @@ Start::
   ld [hl], 0
   jr nz, .clearOAM
 
+  ; Counter for animations
+  ld a, 30
+  ld [wCounter], a
+
   ; Init interrupts
 
   ; Enable only the VBlank interrupt
@@ -237,6 +241,7 @@ Start::
 Loop::
   rst wait_vblank
   call UpdateMovements
+  call Animate
   jp Loop
 
 ;**********************************************************
@@ -295,6 +300,11 @@ UpdateMovements:
 ret
 
 Animate:
+  ld a, [wCounter]
+  cp 0
+  jp nz, .waitForCounter 
+  ld a, 30
+  ld [wCounter], a
   ld hl, wShadowOAM+2
   ld a, [hl]
   cp $15
@@ -303,7 +313,12 @@ Animate:
   ret 
 .switchTile
   ld [hl], $16
-ret
+  ret
+.waitForCounter
+  ld a, [wCounter]
+  dec a
+  ld [wCounter], a
+  ret
 
 ;*** End Of File ***
 ;_SCRN0

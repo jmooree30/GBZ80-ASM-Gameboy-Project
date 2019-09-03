@@ -8,3 +8,7 @@ SECTION "Shadow OAM",WRAM0,ALIGN[8]
 
 wShadowOAM::
     ds 40 * 4
+
+SECTION "Counter", WRAM0
+
+wCounter:: db

@@ -300,10 +300,19 @@ UpdateMovements:
 ret
 
 Animate:
+  ; wCounter is set to 30 on init
+  ; We will only perform an animation every 30 frames
+
   ld a, [wCounter]
   cp 0
+
+  ; If not 0, skip animation logic
   jp nz, .waitForCounter 
+
+  ; If counter was 0, reset counter and perform animation logic
   ld a, 30
+
+  ; Logic to switch out the current sprite tile
   ld [wCounter], a
   ld hl, wShadowOAM+2
   ld a, [hl]
@@ -314,6 +323,8 @@ Animate:
 .switchTile
   ld [hl], $16
   ret
+  
+; Decrement counter by 1 and return
 .waitForCounter
   ld a, [wCounter]
   dec a

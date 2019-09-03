@@ -141,7 +141,6 @@ SECTION "Header", ROM0[$100]
 ; Allocate space for header, which is filled by RGBFIX
   ds $150 - $104
 
-
 ;********************************************************
 ;*Program Start
 ;********************************************************
@@ -150,7 +149,6 @@ SECTION "Program Start",ROM0[$0150]
 Start::
   di ; Disable interrupts so they won't screw up init
   ld sp, wStackBottom
-
 
   ; Init video stuff
 
@@ -182,7 +180,6 @@ Start::
   ldh [hLCDC], a
   ; First frame is fully blank, so do something else in the meantime
 
-
   ; Init non-video memory
 
   ld c, LOW(hClearStart)
@@ -211,7 +208,6 @@ Start::
   ld [hl], 0
   jr nz, .clearOAM
 
-
   ; Init interrupts
 
   ; Enable only the VBlank interrupt
@@ -224,8 +220,6 @@ Start::
   xor a
   ei ; Enable interrupts *after* next instruction
   ldh [rIF], a ; Clear pending interrupts, we don't want any interrupt to misfire
-
-
   
   ; Byte 0 is the Y position
   ld a, 24
@@ -243,7 +237,6 @@ Start::
 Loop::
   rst wait_vblank
   call UpdateMovements
-
   jp Loop
 
 ;**********************************************************
@@ -299,6 +292,17 @@ UpdateMovements:
   ld hl, wShadowOAM+1
   dec [hl]
 .dontMoveScreen
+ret
+
+Animate:
+  ld hl, wShadowOAM+2
+  ld a, [hl]
+  cp $15
+  jr z, .switchTile
+  ld [hl], $15
+  ret 
+.switchTile
+  ld [hl], $16
 ret
 
 ;*** End Of File ***

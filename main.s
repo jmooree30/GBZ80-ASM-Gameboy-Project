@@ -242,6 +242,7 @@ Loop::
   rst wait_vblank
   call UpdateMovements
   call Animate
+  call Camera
   jp Loop
 
 ;**********************************************************
@@ -302,18 +303,14 @@ ret
 Animate:
   ; wCounter is set to 30 on init
   ; We will only perform an animation every 30 frames
-
   ld a, [wCounter]
   cp 0
-
   ; If not 0, skip animation logic
   jp nz, .waitForCounter 
-
   ; If counter was 0, reset counter and perform animation logic
   ld a, 30
-
-  ; Logic to switch out the current sprite tile
   ld [wCounter], a
+  ; Logic to switch out the current sprite tile
   ld hl, wShadowOAM+2
   ld a, [hl]
   cp $15
@@ -323,12 +320,23 @@ Animate:
 .switchTile
   ld [hl], $16
   ret
-  
 ; Decrement counter by 1 and return
 .waitForCounter
   ld a, [wCounter]
   dec a
   ld [wCounter], a
+  ret
+
+Camera:
+  ld a, [wShadowOAM+1]
+  cp 152
+  jr nc, .moveCamera
+  ret 
+.moveCamera
+  ld hl, hSCX
+  ld [hl], 144
+  ld hl, wShadowOAM+1
+  ld [hl], 1
   ret
 
 ;*** End Of File ***

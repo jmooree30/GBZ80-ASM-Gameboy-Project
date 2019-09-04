@@ -330,13 +330,38 @@ Animate:
 Camera:
   ld a, [wShadowOAM+1]
   cp 152
-  jr nc, .moveCamera
-  ret 
-.moveCamera
+  jr nc, .panRight
+  cp 0
+  jr z, .panLeft
+  ld a, [wShadowOAM]
+  cp 130
+  jr nc, .panDown
+  cp 0
+  jr z, .panUp
+  ret
+.panRight
   ld hl, hSCX
-  ld [hl], 144
+  ld [hl], 160
   ld hl, wShadowOAM+1
+  ld [hl], 5
+  ret
+.panLeft
+  ld hl, hSCX
   ld [hl], 1
+  ld hl, wShadowOAM+1
+  ld [hl], 155
+  ret
+.panDown
+  ld hl, hSCY
+  ld [hl], 144
+  ld hl, wShadowOAM
+  ld [hl], 5
+  ret
+.panUp
+  ld hl, hSCY
+  ld [hl], 1
+  ld hl, wShadowOAM
+  ld [hl], 140
   ret
 
 ;*** End Of File ***
